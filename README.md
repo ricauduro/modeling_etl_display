@@ -26,11 +26,13 @@ Knowing that 1)users and brokers must have phones and addresses and 2)Users can 
 
 Our conceptual model looks like this
 
-![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/f0d7ce8f-de0b-4fce-89e3-0a4e8b0264c2)
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/dd05a0c8-adf3-457c-aebd-24dbe1fee505)
+
 
 Which lead to our logical model
 
-![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/f1460972-5f84-421e-93c2-4cdc761f617f)
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/45dd9534-4072-4980-bbe2-18130f1710f0)
+
 
 and then to our fisical schema
 
@@ -45,6 +47,7 @@ ATUACAO VARCHAR(10)
 CREATE TABLE ENDERECO (
 ENDERECO_ID INTEGER PRIMARY KEY IDENTITY(1,1),
 CORRETORA_ID INTEGER,
+LOGRADOURO VARCHAR(50),
 RUA VARCHAR(50),
 NUMERO INTEGER,
 BAIRRO VARCHAR(20),
@@ -84,12 +87,12 @@ Now we have the tables in place, we can insert some data into it
 INSERT INTO CORRETORA (NOME, ATUACAO)
 VALUES ('DAX', 'Cripto');
 
-INSERT INTO ENDERECO (CORRETORA_ID, RUA, NUMERO, BAIRRO, CEP, CIDADE, UF)
-VALUES (1, 'Avenida da Saudade', 123, 'Bairro A', '12345-678', 'Campinas', 'SP');
+INSERT INTO ENDERECO (CORRETORA_ID, LOGRADOURO, RUA, NUMERO, BAIRRO, CEP, CIDADE, UF)
+VALUES (1, 'Avenida',  'da Saudade', 123, 'Bairro A', '12345-678', 'Campinas', 'SP');
 
-INSERT INTO USUARIO (ENDERECO_ID, CORRETORA_ID, NOME, NOME_MEIO, SOBRENOME, DATA_NASCIMENTO)
-VALUES (1, 1, 'João', 'Silva', 'Santos', '1990-01-01');
+INSERT INTO USUARIO (ENDERECO_ID, CORRETORA_ID, NOME, SOBRENOME, DATA_NASCIMENTO)
+VALUES (1, 1, 'Ricardo', 'Cauduro', '1983-02-25');
 
 INSERT INTO TELEFONE (USUARIO_ID, CORRETORA_ID, TIPO, DDD, NUMERO)
-VALUES (1, 1, 'Celular', 11, 987654321);
+VALUES (1, 1, 'Celular', 19, 987654321);
 ```
