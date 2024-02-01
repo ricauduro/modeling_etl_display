@@ -137,6 +137,35 @@ def main(mytimer: func.TimerRequest) -> None:
     logging.info('Python timer trigger function executed.')
 
 ```
+This code will run on an hourly basis. Then, with 
 
-Few comments about the code:from shared_code.uteis import uploadToBlobStorage
--the import "from shared_code.uteis import uploadToBlobStorage" it´s function that I created in another folder to make the code cleanner and 
+```python
+        nova_client = NovaClient(AccessKey, SecretKey)
+        result = nova_client.get_ticker('BTC_BRL')
+```
+we´re getting the bitcoin last price and other attributes. After we´re setting an filename, using datetime function 
+```python
+        filename_date = datetime.now().strftime('%Y%m%d_%H%M%S')
+```
+and then we´re calling uploadToBlobStorage function, that we imported from shared_code folder. 
+```python
+        from shared_code.uteis import uploadToBlobStorage
+
+        uploadToBlobStorage(res, 'dax_{}'.format(filename_date))
+```
+This is the funtion at shared_code folder:
+
+```python
+def uploadToBlobStorage(data,file_name):
+   blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+   blob_client = blob_service_client.get_blob_client(container='dax', blob=file_name)
+   blob_client.upload_blob(data)
+```
+
+After few days running, this is our blob storage
+
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/eed66e57-7266-4f0a-bfe0-fa5113953bd3)
+
+### Databricks
+
+
