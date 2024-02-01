@@ -100,3 +100,43 @@ INSERT INTO TELEFONE (USUARIO_ID, CORRETORA_ID, TIPO, DDD, NUMERO)
 VALUES (1, 1, 'Celular', 19, 987654321),
        (2, 1, 'Celular', 19, 978644822);
 ```
+### Azure Function
+
+Moving on, let´s start to extract our broker´s data using an Azure Function to call a API and save the results into a blob. 
+
+You can check here how to develop and deploy a Azure function https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-vs-code?tabs=node-v3%2Cpython-v2%2Cisolated-process&pivots=programming-language-python . I´m goign to focus on the code.
+
+Code is very simple as we can see below. We´re using a TimeTrigger function
+
+```python
+import os
+import json
+import logging
+from datetime import datetime
+import azure.functions as func
+from novadax import RequestClient as NovaClient
+from azure.storage.blob import BlobServiceClient
+from shared_code.uteis import uploadToBlobStorage
+
+AccessKey = os.environ['dax_access_key']
+SecretKey = os.environ['dax_secret']
+connection_string = os.environ['azf_blob_endpoint']
+
+def main(mytimer: func.TimerRequest) -> None:
+    logging.info('The timer is past due!')
+    if mytimer.past_due:
+        logging.info('API call time')
+
+        nova_client = NovaClient(AccessKey, SecretKey)
+        result = nova_client.get_ticker('BTC_BRL')
+        filename_date = datetime.now().strftime('%Y%m%d_%H%M%S')
+        res = json.dumps(result)
+        logging.info(res)
+        uploadToBlobStorage(res, 'dax_{}'.format(filename_date))
+
+    logging.info('Python timer trigger function executed.')
+
+```
+
+Few comments about the code:from shared_code.uteis import uploadToBlobStorage
+-the import "from shared_code.uteis import uploadToBlobStorage" it´s function that I created in another folder to make the code cleanner and 
