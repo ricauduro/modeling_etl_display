@@ -7,3 +7,5 @@ requests
 datetime
 novadax
 azure.storage.blob
+azure.identity
+azure.mgmt.datafactory
