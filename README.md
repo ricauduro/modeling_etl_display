@@ -20,7 +20,9 @@
 
   As I´m starting from scratch, let´s build the ERD (Entity-Relationship Diagram). I´m using brModelo to do it. You can check it out here https://github.com/chcandido/brModelo
 
-Knowing that 1)users and brokers must have phones and addresses and 2)Users can have only one broker, we can build the model with this cardinality:
+Knowing that 
+1)users and brokers must have phones and addresses and 
+2)Users can have only one broker, we can build the model with this cardinality:
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/4c5c1b63-233a-4d6d-b4ce-0fd214d73496)
 
@@ -104,30 +106,47 @@ VALUES (1, 1, 'Celular', 19, 987654321),
 
 Moving on, let´s start to extract our broker´s data using an Azure Function to call a API and save the results into a blob. 
 
-You can check here how to develop and deploy a Azure function https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-vs-code?tabs=node-v3%2Cpython-v2%2Cisolated-process&pivots=programming-language-python . I´m goign to focus on the code.
+You can check here how to develop and deploy a Azure function https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-vs-code?tabs=node-v3%2Cpython-v2%2Cisolated-process&pivots=programming-language-python.
+You may find this one usefull too https://learn.microsoft.com/EN-us/azure/azure-functions/functions-identity-based-connections-tutorial -> Grant AzFunction KV access
 
-Code is very simple as we can see below. We´re using a TimeTrigger function
+I´m goign to focus on the code, which is very simple as we can see below. We´re using a TimeTrigger function
 
 ```python
 import os
 import json
 import logging
+import requests
 from datetime import datetime
 import azure.functions as func
 from novadax import RequestClient as NovaClient
 from azure.storage.blob import BlobServiceClient
-from shared_code.uteis import uploadToBlobStorage
+from azure.identity import ClientSecretCredential 
+from azure.mgmt.datafactory import DataFactoryManagementClient
+from shared_code.uteis import uploadToBlobStorage, call_pipeline
 
-AccessKey = os.environ['dax_access_key']
-SecretKey = os.environ['dax_secret']
+#blob variables
+access_key = os.environ['dax_access_key']
+secret_key = os.environ['dax_secret']
 connection_string = os.environ['azf_blob_endpoint']
 
-def main(mytimer: func.TimerRequest) -> None:
-    logging.info('The timer is past due!')
-    if mytimer.past_due:
-        logging.info('API call time')
+#adf variables
+rg_name = "RG01"
+df_name = "rc-adf-01"
+p_name = "PL_databricks_flow"
+s_id = os.environ["adf_subscription_id"]
+c_id = os.environ["adf_client_id"]
+t_id = os.environ["tenant_id"]
+c_secret = os.environ["adf_client_secret"]
+df_params = {"location":"brazilsouth"}
+credentials = ClientSecretCredential(client_id = c_id, client_secret = c_secret, tenant_id = t_id)
+adf_client = DataFactoryManagementClient(credentials, s_id)
 
-        nova_client = NovaClient(AccessKey, SecretKey)
+def main(mytimer: func.TimerRequest) -> None:
+    logging.info('t_id ->' + t_id)
+    if mytimer.past_due:
+        logging.info('The timer is past due!')
+
+        nova_client = NovaClient(access_key, secret_key)
         result = nova_client.get_ticker('BTC_BRL')
         filename_date = datetime.now().strftime('%Y%m%d_%H%M%S')
         res = json.dumps(result)
@@ -135,6 +154,7 @@ def main(mytimer: func.TimerRequest) -> None:
         uploadToBlobStorage(res, 'dax_{}'.format(filename_date))
 
     logging.info('Python timer trigger function executed.')
+    call_pipeline(c_id, c_secret, t_id, s_id, rg_name, df_name, p_name)
 
 ```
 This code will run on an hourly basis. Then, with 
@@ -166,6 +186,17 @@ After few days running, this is our blob storage
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/eed66e57-7266-4f0a-bfe0-fa5113953bd3)
 
+at code´s end we have this funciton, also imported from shared_code, that will create a Data Factory pipeline run, to start Dabricks transformations
+
+```python
+        call_pipeline(c_id, c_secret, t_id, s_id, rg_name, df_name, p_name)
+```
+this is the pipeline
+
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/5f23d161-73a5-4705-8d1a-aae23a0103b5)
+
+it´ll get the max date from SQL table, so when reading API data, which are all togheter, we can use the date to filter and process only newest data
+
 ### Databricks
 
-
+https://learn.microsoft.com/en-us/azure/databricks/security/secrets/secret-scopes -> Grant Databricks KV access (this one is in conflict with grant AzFunction KV access... read carefully)
