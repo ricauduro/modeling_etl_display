@@ -1,0 +1,95 @@
+{
+    "name": "PL_databricks_flow",
+    "properties": {
+        "activities": [
+            {
+                "name": "Notebook1",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Set variable",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Users/ricardo.cauduro@outlook.com/NovaDaxAPI",
+                    "baseParameters": {
+                        "max_date": {
+                            "value": "@variables('max_date')",
+                            "type": "Expression"
+                        }
+                    }
+                },
+                "linkedServiceName": {
+                    "referenceName": "LS_Databricks",
+                    "type": "LinkedServiceReference"
+                }
+            },
+            {
+                "name": "GetMaxDate",
+                "type": "Lookup",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "AzureSqlSource",
+                        "sqlReaderQuery": "SELECT MAX(timestamp) as c FROM [dbo].[dax_api]",
+                        "queryTimeout": "02:00:00",
+                        "partitionOption": "None"
+                    },
+                    "dataset": {
+                        "referenceName": "DS_MSSQL",
+                        "type": "DatasetReference"
+                    }
+                }
+            },
+            {
+                "name": "Set variable",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "GetMaxDate",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "max_date",
+                    "value": {
+                        "value": "@activity('GetMaxDate').output.firstRow.c",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "variables": {
+            "max_date": {
+                "type": "String"
+            }
+        },
+        "annotations": []
+    }
+}
