@@ -115,43 +115,31 @@ I´m goign to focus on the code, which is very simple as we can see below. We´r
 import os
 import json
 import logging
-import requests
 from datetime import datetime
 import azure.functions as func
 from novadax import RequestClient as NovaClient
-from azure.storage.blob import BlobServiceClient
-from azure.identity import ClientSecretCredential 
-from azure.mgmt.datafactory import DataFactoryManagementClient
 from shared_code.uteis import uploadToBlobStorage, call_pipeline
 
-#blob variables
+#blob variable
 access_key = os.environ['dax_access_key']
 secret_key = os.environ['dax_secret']
-connection_string = os.environ['azf_blob_endpoint']
 
 #adf variables
 rg_name = "RG01"
 df_name = "rc-adf-01"
 p_name = "PL_databricks_flow"
-s_id = os.environ["adf_subscription_id"]
+
 c_id = os.environ["adf_client_id"]
-t_id = os.environ["tenant_id"]
 c_secret = os.environ["adf_client_secret"]
-df_params = {"location":"brazilsouth"}
-credentials = ClientSecretCredential(client_id = c_id, client_secret = c_secret, tenant_id = t_id)
-adf_client = DataFactoryManagementClient(credentials, s_id)
+t_id = os.environ["tenant_id"]
+s_id = os.environ["adf_subscription_id"]
 
 def main(mytimer: func.TimerRequest) -> None:
-    logging.info('t_id ->' + t_id)
-    if mytimer.past_due:
-        logging.info('The timer is past due!')
-
-        nova_client = NovaClient(access_key, secret_key)
-        result = nova_client.get_ticker('BTC_BRL')
-        filename_date = datetime.now().strftime('%Y%m%d_%H%M%S')
-        res = json.dumps(result)
-        logging.info(res)
-        uploadToBlobStorage(res, 'dax_{}'.format(filename_date))
+    nova_client = NovaClient(access_key, secret_key)
+    result = nova_client.get_ticker('BTC_BRL')
+    filename_date = datetime.now().strftime('%Y%m%d_%H%M%S')
+    res = json.dumps(result)
+    uploadToBlobStorage(res, 'dax_{}.json'.format(filename_date))
 
     logging.info('Python timer trigger function executed.')
     call_pipeline(c_id, c_secret, t_id, s_id, rg_name, df_name, p_name)
@@ -176,10 +164,23 @@ and then we´re calling uploadToBlobStorage function, that we imported from shar
 This is the funtion at shared_code folder:
 
 ```python
+import os
+from azure.storage.blob import BlobServiceClient
+from azure.identity import ClientSecretCredential
+from azure.mgmt.datafactory import DataFactoryManagementClient
+
+connection_string = os.environ['azf_blob_endpoint']
+
 def uploadToBlobStorage(data,file_name):
    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
    blob_client = blob_service_client.get_blob_client(container='dax', blob=file_name)
    blob_client.upload_blob(data)
+
+def call_pipeline(c_id,c_secret,t_id,s_id,rg_name,df_name,p_name):
+    global adf_client
+    credentials = ClientSecretCredential(client_id = c_id, client_secret = c_secret, tenant_id=t_id)
+    adf_client = DataFactoryManagementClient(credentials, s_id)
+    adf_client.pipelines.create_run(rg_name, df_name, p_name)
 ```
 
 After few days running, this is our blob storage
