@@ -283,6 +283,10 @@ table = 'dax_api'
 
 Here are some usefull links to set up databricks
 https://learn.microsoft.com/en-us/azure/data-factory/transform-data-using-databricks-notebook
+
 https://learn.microsoft.com/en-us/azure/databricks/security/secrets/secret-scopes -> Grant Databricks KV access (this one is in conflict with grant AzFunction KV access... use carefully)
 
+Now that all tables are in place, let´s start to build our fact and dimensions
 
+
+### Dimensional Modeling
