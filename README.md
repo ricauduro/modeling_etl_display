@@ -203,8 +203,7 @@ With Lookup activity it´ll get the max date from SQL table
 
 and it´s passing this value to Databricks notebook
 
-![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/192fa6e7-87e2-4099-bbd8-f9160ee79016)
-
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/67595a16-db7c-45d8-ad41-3bd7894584ad)
 
 so when reading API data, which are all togheter inside the container, we can use the date to filter and process only newest data
 
