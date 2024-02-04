@@ -187,7 +187,7 @@ After few days running, this is our blob storage
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/eed66e57-7266-4f0a-bfe0-fa5113953bd3)
 
-at code´s end we have this funciton, also imported from shared_code, that will create a Data Factory pipeline run, to start Dabricks transformations
+at code´s end we have this funciton, also imported from shared_code, that will create a Data Factory pipeline run, to start Databricks transformations
 
 ```python
         call_pipeline(c_id, c_secret, t_id, s_id, rg_name, df_name, p_name)
