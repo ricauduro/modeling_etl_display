@@ -28,7 +28,8 @@ Knowing that
 
 Our conceptual model looks like this
 
-![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/dd05a0c8-adf3-457c-aebd-24dbe1fee505)
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/dbf5cf17-c45d-43cc-b706-dd8721e5583b)
+
 
 
 Which lead to our logical model
