@@ -93,11 +93,9 @@ VALUES ('DAX', 'Cripto');
 INSERT INTO ENDERECO (CORRETORA_ID, LOGRADOURO, RUA, NUMERO, BAIRRO, CEP, CIDADE, UF)
 VALUES (1, 'Avenida',  'da Saudade', 123, 'Bairro A', '12345-678', 'Campinas', 'SP');
 
-INSERT INTO USUARIO (ENDERECO_ID, CORRETORA_ID, NOME, SOBRENOME, DATA_NASCIMENTO)
-VALUES (1, 1, 'Ricardo', 'Cauduro', '1983-02-25');
-
 INSERT INTO USUARIO (ENDERECO_ID, CORRETORA_ID, NOME, NOME_MEIO, SOBRENOME, DATA_NASCIMENTO)
-VALUES (1, 1, 'Rita', 'de Cassia', 'Martins Cauduro', '1986-04-30');
+VALUES (1, 1, 'Ricardo', null, 'Cauduro', '1983-02-25'),
+       (1, 1, 'Rita', 'de Cassia', 'Martins Cauduro', '1986-04-30');
 
 INSERT INTO TELEFONE (USUARIO_ID, CORRETORA_ID, TIPO, DDD, NUMERO)
 VALUES (1, 1, 'Celular', 19, 987654321),
@@ -161,9 +159,9 @@ and then we´re calling uploadToBlobStorage function, that we imported from shar
 ```python
         from shared_code.uteis import uploadToBlobStorage
 
-        uploadToBlobStorage(res, 'dax_{}'.format(filename_date))
+        uploadToBlobStorage(res, 'dax_{}.json'.format(filename_date))
 ```
-This is the funtion at shared_code folder:
+This is the function at shared_code folder:
 
 ```python
 import os
@@ -198,7 +196,7 @@ this is the pipeline
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/5f23d161-73a5-4705-8d1a-aae23a0103b5)
 
-it´ll get the max date from SQL table, so when reading API data, which are all togheter, we can use the date to filter and process only newest data
+it´ll get the max date from SQL table, so when reading API data, which are all togheter inside the container, we can use the date to filter and process only newest data
 
 ### Databricks
 
