@@ -200,4 +200,79 @@ it´ll get the max date from SQL table, so when reading API data, which are all 
 
 ### Databricks
 
-https://learn.microsoft.com/en-us/azure/databricks/security/secrets/secret-scopes -> Grant Databricks KV access (this one is in conflict with grant AzFunction KV access... read carefully)
+My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... but I´ll focus only on the transformatio and saving the data as a table in the SQL DB.
+
+At our AzFunction, we were storing data as a json object, so, we´ll use json method to start reading the data. 
+
+```python
+df = spark.read.json("dbfs:/mnt/blob/dax*")
+display(df)
+```
+our display will be this one
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/67d7e5ce-7898-423e-8f40-189780459de0)
+
+Now that we know what´s is being ingested, we can start some transformations, first spliting fields
+```python
+df_exp = df.select(
+    'data.symbol',
+    'data.ask',
+    'data.baseVolume24h',
+    'data.bid',
+    'data.high24h',
+    'data.lastPrice',
+    'data.low24h',
+    'data.open24h',
+    'data.quoteVolume24h',
+    'data.timestamp'
+
+display(df_exp)
+```
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/d47b356b-c7e2-4396-82e3-382aa6671775)
+
+We can see that timestamp column need soime transformation also... 
+
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/d9aac1cb-5996-43f1-8361-5940bf425298)
+
+Once we read all data in the storage with 
+```python
+df = spark.read.json("dbfs:/mnt/blob/dax*")
+```
+now we´ll use the date that we get from SQL DB with Data Factory Lookup activity and we´ll use it to filter DF´s data to have only data that are not in the SQL DB
+
+```python
+data = dbutils.widgets.get("max_date")
+df = df.filter(col('timestamp') > data) if data is not None else df
+```
+
+with the transformations and filters apllied, we can save the DF as a tabe at SQL DB
+
+```python
+jdbcDriver = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
+
+jdbcUrl = 'jdbc:sqlserver://{0}:{1};database={2}'.format(server, 1433, db)
+connectionProperties = {
+  'user' : sql_user,
+  'password' : sql_secret,
+  'driver' : jdbcDriver
+}
+
+print(jdbcUrl)
+table = 'dax_api'
+
+(
+  df.write.mode('append')
+  .format('jdbc')
+  .option('url', jdbcUrl)
+  .option('dbtable', table)
+  .option('user', sql_user)
+  .option('password', sql_secret)
+  .option('driver', jdbcDriver)
+  .save()
+)
+```
+
+Here are some usefull links to set up databricks
+https://learn.microsoft.com/en-us/azure/data-factory/transform-data-using-databricks-notebook
+https://learn.microsoft.com/en-us/azure/databricks/security/secrets/secret-scopes -> Grant Databricks KV access (this one is in conflict with grant AzFunction KV access... use carefully)
+
+
