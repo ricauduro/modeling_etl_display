@@ -209,13 +209,12 @@ so when reading API data, which are all togheter inside the container, we can us
 
 ### Databricks
 
-My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... but I´ll focus only on the transformatio and saving the data as a table in the SQL DB.
+My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... but I´ll focus only on data transformation and saving it as a table into SQL DB.
 
-At our AzFunction, we were storing data as a json object, so, we´ll use json method to start reading the data. 
+At our AzFunction, we were storing data as a json object, so we´ll use json method to start reading the data. 
 
 ```python
 df = spark.read.json("dbfs:/mnt/blob/dax*")
-display(df)
 ```
 our display will be this one
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/67d7e5ce-7898-423e-8f40-189780459de0)
@@ -234,15 +233,15 @@ df_exp = df.select(
     'data.quoteVolume24h',
     'data.timestamp'
 
-display(df_exp)
 ```
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/d47b356b-c7e2-4396-82e3-382aa6671775)
 
-We can see that timestamp column need soime transformation also... 
+We can see that timestamp column need some transformation also... I´m taking advantage to add some id´s that we´ll use with other tables.
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/d9aac1cb-5996-43f1-8361-5940bf425298)
 
-Once we read all data in the storage with 
+
+We read all data in the storage with 
 ```python
 df = spark.read.json("dbfs:/mnt/blob/dax*")
 ```
@@ -253,7 +252,8 @@ data = dbutils.widgets.get("max_date")
 df = df.filter(col('timestamp') > data) if data is not None else df
 ```
 
-with the transformations and filters apllied, we can save the DF as a tabe at SQL DB
+with the transformations and filters apllied, we can save the DF as a tabe at SQL DB. 
+
 
 ```python
 jdbcDriver = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
@@ -278,6 +278,14 @@ table = 'dax_api'
   .option('driver', jdbcDriver)
   .save()
 )
+```
+sql_user, sql_secret, jdbcDriver and other params were added to cluster session, and we´re accessing those values with this code, so we can protect sensitive data
+
+```python
+sql_user = spark.conf.get("spark.sql_user")
+sql_secret = spark.conf.get("spark.sql_secret")
+server = spark.conf.get("server")
+db = spark.conf.get("db")
 ```
 
 Here are some usefull links to set up databricks
