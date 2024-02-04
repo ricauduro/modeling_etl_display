@@ -108,6 +108,7 @@ VALUES (1, 1, 'Celular', 19, 987654321),
 Moving on, let´s start to extract our broker´s data using an Azure Function to call a API and save the results into a blob. 
 
 You can check here how to develop and deploy a Azure function https://learn.microsoft.com/en-us/azure/azure-functions/functions-develop-vs-code?tabs=node-v3%2Cpython-v2%2Cisolated-process&pivots=programming-language-python.
+
 You may find this one usefull too https://learn.microsoft.com/EN-us/azure/azure-functions/functions-identity-based-connections-tutorial -> Grant AzFunction KV access
 
 I´m goign to focus on the code, which is very simple as we can see below. We´re using a TimeTrigger function
