@@ -194,9 +194,19 @@ at code´s end we have this funciton, also imported from shared_code, that will 
 ```
 this is the pipeline
 
-![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/5f23d161-73a5-4705-8d1a-aae23a0103b5)
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/04a991ca-e36d-49a7-b7fc-bdaf9b6e67d0)
 
-it´ll get the max date from SQL table, so when reading API data, which are all togheter inside the container, we can use the date to filter and process only newest data
+
+With Lookup activity it´ll get the max date from SQL table 
+
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/33d97eb2-2762-4231-b985-97dd3253888f)
+
+and it´s passing this value to Databricks notebook
+
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/192fa6e7-87e2-4099-bbd8-f9160ee79016)
+
+
+so when reading API data, which are all togheter inside the container, we can use the date to filter and process only newest data
 
 ### Databricks
 
