@@ -162,6 +162,19 @@ def main(mytimer: func.TimerRequest) -> None:
     call_pipeline(c_id, c_secret, t_id, s_id, rg_name, df_name, p_name)
 
 ```
+we´re retrieving some values from Key Vault using
+
+```python
+access_key = os.environ['dax_access_key']
+secret_key = os.environ['dax_secret']
+```
+Here´s how you create these references
+
+https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references?tabs=azure-cli
+
+https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings?tabs=portal
+
+
 This code will run on an hourly basis. Then, with 
 
 ```python
