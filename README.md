@@ -209,7 +209,11 @@ so when reading API data, which are all togheter inside the container, we can us
 
 ### Databricks
 
-My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... but I´ll focus only on data transformation and saving it as a table into SQL DB.
+My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... you´ll thes config to access you data without exposing sensitive data and doing it in the safe way 
+
+![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/e5bada2e-8cc5-46d5-b0b1-e29046c46cee)
+
+but I´ll focus only on data transformation and saving it as a table into SQL DB.
 
 At our AzFunction, we were storing data as a json object, so we´ll use json method to start reading the data. 
 
@@ -219,7 +223,7 @@ df = spark.read.json("dbfs:/mnt/blob/dax*")
 our display will be this one
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/67d7e5ce-7898-423e-8f40-189780459de0)
 
-Now that we know what´s is being ingested, we can start some transformations, first spliting fields
+Now that we know what´s is being ingested, we can start some transformations, first exploding fields
 ```python
 df_exp = df.select(
     'data.symbol',
@@ -245,7 +249,7 @@ We read all data in the storage with
 ```python
 df = spark.read.json("dbfs:/mnt/blob/dax*")
 ```
-now we´ll use the date that we get from SQL DB with Data Factory Lookup activity and we´ll use it to filter DF´s data to have only data that are not in the SQL DB
+so our DF have all data stored in the blob. Now we´ll use the date that we get from SQL DB with Data Factory Lookup activity and we´ll use it to filter DF´s data to have only data that are not in the SQL DB
 
 ```python
 data = dbutils.widgets.get("max_date")
