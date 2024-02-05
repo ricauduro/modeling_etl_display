@@ -45,7 +45,12 @@ Our conceptual model looks like this
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/dbf5cf17-c45d-43cc-b706-dd8721e5583b)
 
-Which lead to our logical model
+Note that on the "N" side of the relationship there is always a field that points to the primary key on the "1" side.
+This is a characteristic of 1:N relationships. In the table on the "N" side, a "foreign key" is created that points to the primary key of the "1" table.
+
+https://www.devmedia.com.br/modelagem-1-n-ou-n-n/38894
+
+with our conceptual model ready, we can build move to our logical model
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/45dd9534-4072-4980-bbe2-18130f1710f0)
 
