@@ -1,15 +1,29 @@
 ## DB Modeling, ETL and display -> end-to-end project 
   This file will hold the project drive-thru, starting from modeling a DB, ingesting data with an Azure function from an API, creating a dimensional model with existing DB tables + API data, then displaying the final results with a PowerBI dashbord.
+
+  We´ll use the following services in Azure to build our DB and ETL process
+<pre>
+  -Azure SQLDB
+  -Azure Functions
+  -Azure Key Vault
+  -Azure Databricks
+</pre>
+
+  Outside Azure, we´ll use 
+<pre>
+  -brModelo to model our DB and our dimensional tables
+  -PowerBi to visualize our data 
+</pre>
   I´ll use data from a bitcoin broker and myself data. So I´m planning to create the following entities:
   
-```md
+<pre>
     -user
     -broker
     -address
     -phone
 
-  **Users and brokers must have phones and addresses. Users can have only one broker. 
-```
+  **Users and brokers must have phones and addresses. Users can have only one broker.
+</pre>
   An AzureSQL will hold the entities while an Azure Function will consume data from an API on an hourly basis in a blob storage.
 
   Once the entities and API data are in place, a Databricks notebook will transform API data and then move it to AzureSQL DB.
@@ -21,21 +35,19 @@
   As I´m starting from scratch, let´s build the ERD (Entity-Relationship Diagram). I´m using brModelo to do it. You can check it out here https://github.com/chcandido/brModelo
 
 Knowing that 
+<pre>
 1)users and brokers must have phones and addresses and 
 2)Users can have only one broker, we can build the model with this cardinality:
-
+</pre>
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/4c5c1b63-233a-4d6d-b4ce-0fd214d73496)
 
 Our conceptual model looks like this
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/dbf5cf17-c45d-43cc-b706-dd8721e5583b)
 
-
-
 Which lead to our logical model
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/45dd9534-4072-4980-bbe2-18130f1710f0)
-
 
 and then to our fisical schema
 
