@@ -50,7 +50,7 @@ This is a characteristic of 1:N relationships. In the table on the "N" side, a "
 
 https://www.devmedia.com.br/modelagem-1-n-ou-n-n/38894
 
-with our conceptual model ready, we can build move to our logical model
+with our conceptual model ready, we can move to our logical model
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/45dd9534-4072-4980-bbe2-18130f1710f0)
 
@@ -126,7 +126,7 @@ You can check here how to develop and deploy a Azure function https://learn.micr
 
 You may find this one usefull too https://learn.microsoft.com/EN-us/azure/azure-functions/functions-identity-based-connections-tutorial -> Grant AzFunction KV access
 
-I´m goign to focus on the code, which is very simple as we can see below. We´re using a TimeTrigger function
+I´m going to focus on the code, which is very simple as we can see below. We´re using a TimeTrigger function
 
 ```python
 import os
@@ -239,7 +239,7 @@ so when reading API data, which are all togheter inside the container, we can us
 
 ### Databricks
 
-My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... you´ll thes config to access you data without exposing sensitive data and doing it in the safe way 
+My Databricks notebook contain some links to usefull info, like create a secret scope, adding system variables and accessing them, mount a blob... you´ll use these config to access you data without exposing sensitive data and doing it in the safe way 
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/e5bada2e-8cc5-46d5-b0b1-e29046c46cee)
 
@@ -286,7 +286,7 @@ data = dbutils.widgets.get("max_date")
 df = df.filter(col('timestamp') > data) if data is not None else df
 ```
 
-with the transformations and filters apllied, we can save the DF as a tabe at SQL DB. 
+with the transformations and filters apllied, we can save the DF as a tabe into SQL DB. 
 
 
 ```python
@@ -313,7 +313,7 @@ table = 'dax_api'
   .save()
 )
 ```
-sql_user, sql_secret, jdbcDriver and other params were added to cluster session, and we´re accessing those values with this code, so we can protect sensitive data
+sql_user, sql_secret, jdbcDriver and other params were added at cluster session, and we´re accessing those values with this code, so we can protect sensitive data
 
 ```python
 sql_user = spark.conf.get("spark.sql_user")
