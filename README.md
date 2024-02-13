@@ -37,8 +37,10 @@
 Knowing that 
 <pre>
 1)users and brokers must have phones and addresses and 
-2)Users can have only one broker, we can build the model with this cardinality:
+2)Users can have only one broker
 </pre>
+we can build the model with this cardinality:
+
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/4c5c1b63-233a-4d6d-b4ce-0fd214d73496)
 
 Our conceptual model looks like this
@@ -168,14 +170,14 @@ we´re retrieving some values from Key Vault using
 access_key = os.environ['dax_access_key']
 secret_key = os.environ['dax_secret']
 ```
-Here´s how you create these references
+Here´s how you can create these references
 
 https://learn.microsoft.com/en-us/azure/app-service/app-service-key-vault-references?tabs=azure-cli
 
 https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings?tabs=portal
 
 
-This code will run on an hourly basis. Then, with 
+The code will run on an hourly basis. Then, with 
 
 ```python
         nova_client = NovaClient(AccessKey, SecretKey)
@@ -217,7 +219,7 @@ After few days running, this is our blob storage
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/eed66e57-7266-4f0a-bfe0-fa5113953bd3)
 
-at code´s end we have this funciton, also imported from shared_code, that will create a Data Factory pipeline run, to start Databricks transformations
+at code´s end we have this function, also imported from shared_code, that will create a Data Factory pipeline run, to start Databricks transformations
 
 ```python
         call_pipeline(c_id, c_secret, t_id, s_id, rg_name, df_name, p_name)
@@ -270,7 +272,7 @@ df_exp = df.select(
 ```
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/d47b356b-c7e2-4396-82e3-382aa6671775)
 
-We can see that timestamp column need some transformation also... I´m taking advantage to add some id´s that we´ll use with other tables.
+We can see that timestamp column need some transformation... I´ll takie advantage to add some id´s that we´ll use with other tables.
 
 ![image](https://github.com/ricauduro/modeling_etl_display/assets/58055908/d9aac1cb-5996-43f1-8361-5940bf425298)
 
@@ -331,3 +333,96 @@ Now that all tables are in place, let´s start to build our fact and dimensions
 
 
 ### Dimensional Modeling
+
+Thinking in which kind what entities I could have as dimensions to enrich my dataset, I could think on these ones
+<pre>
+  -DimCalendar
+  -DimUser
+  -DimAddress
+  -DimBroker
+</pre>
+
+and for the fact table we´ll use bitcoin prices
+
+<pre>
+  -FctBitcoinPrice
+</pre>
+
+For the dimensions, we´re good with users, address and broker. But what about DimCalendar? How could we build it from scratch?
+
+We can use this code to create our DimCalendar using CTE (full script inside modelagem folder)
+
+This code block sets the session-level settings for the first day of the week to Sunday, the date format to month-day-year (mdy), and the language to US English.
+```sql
+SET DATEFIRST  7, -- 1 = Monday, 7 = Sunday
+    DATEFORMAT mdy, 
+    LANGUAGE   US_ENGLISH;
+
+```
+
+These lines declare two date variables @StartDate and @CutoffDate. @StartDate is set to '20200101', representing the start date. @CutoffDate is calculated by adding 5 years to @StartDate and subtracting 1 day.
+
+```sql
+DECLARE @StartDate  date = '20200101';
+
+DECLARE @CutoffDate date = DATEADD(DAY, -1, DATEADD(YEAR, 5, @StartDate));
+```
+
+This block of code uses two CTEs: seq and d. The seq CTE starts with 0 and recursively adds 1 to the previous number until it reaches the difference in days between @StartDate and @CutoffDate.The d CTE uses the generated numbers to calculate corresponding dates by adding
+
+```sql
+;WITH seq(n) AS 
+(
+  SELECT 0 UNION ALL SELECT n + 1 FROM seq
+  WHERE n < DATEDIFF(DAY, @StartDate, @CutoffDate)
+),
+d(d) AS 
+(
+  SELECT DATEADD(DAY, n, @StartDate) FROM seq
+)
+SELECT d FROM d
+ORDER BY d
+OPTION (MAXRECURSION 0);
+```
+
+This last block of code extends the previous logic and creates a new CTE called src. The src CTE selects various date-related information from the d CTE, such as the date ID in the format 'YYYYMMDD', the date value itself, the day number, the day name, the week number, the ISO week number, the day of the week, the month number, the month name, the quarter, the year, the first day of the month, the last day of the year, and the day of the year.
+
+Finally, the selected data from the src CTE is inserted into a table called dbo.DimCalendar and ordered by the date ID. The OPTION (MAXRECURSION 0) ensures that the recursive CTEs can generate the required number of rows.
+
+```sql
+;WITH seq(n) AS 
+(
+  SELECT 0 UNION ALL SELECT n + 1 FROM seq
+  WHERE n < DATEDIFF(DAY, @StartDate, @CutoffDate)
+),
+d(d) AS 
+(
+  SELECT DATEADD(DAY, n, @StartDate) FROM seq
+),
+src AS
+(
+  SELECT
+    date_id      = CONVERT(varchar(8), d, 112)
+    date         = CONVERT(date, d),
+    day          = DATEPART(DAY,       d),
+    dayName      = DATENAME(WEEKDAY,   d),
+    week         = DATEPART(WEEK,      d),
+    isoWeek      = DATEPART(ISO_WEEK,  d),
+    dayOfWeek    = DATEPART(WEEKDAY,   d),
+    month        = DATEPART(MONTH,     d),
+    monthName    = DATENAME(MONTH,     d),
+    quarter      = DATEPART(Quarter,   d),
+    year         = DATEPART(YEAR,      d),
+    firstOfMonth = DATEFROMPARTS(YEAR(d), MONTH(d), 1),
+    lastOfYear   = DATEFROMPARTS(YEAR(d), 12, 31),
+    dayOfYear    = DATEPART(DAYOFYEAR, d)
+  FROM d
+)
+SELECT * INTO dbo.DimCalendar FROM src
+  ORDER BY date_id
+  OPTION (MAXRECURSION 0);
+```
+https://www.mssqltips.com/sqlservertip/4054/creating-a-date-dimension-or-calendar-table-in-sql-server/
+
+Now that we have all our dimensions, let´s build our star
+
